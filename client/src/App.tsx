@@ -25,7 +25,7 @@ function App() {
 
   useEffect(() => {
     // Validate dependencies on mount
-    fetch(`${config.apiUrl}/api/validate`)
+    fetch(`${config.apiUrl}/validate`)
       .then((res) => res.json())
       .then((data: ValidationResult) => {
         setValidation(data);
@@ -72,8 +72,8 @@ function App() {
   return (
     <div
       className={`min-h-screen transition-all duration-500 ${mode === 'curator'
-          ? 'bg-[#FAFAFA] text-[#111]'
-          : 'bg-[#050505] text-white'
+        ? 'bg-[#FAFAFA] text-[#111]'
+        : 'bg-[#050505] text-white'
         }`}
     >
       {mode === 'curator' ? <CuratorMode /> : <TerminalMode />}
