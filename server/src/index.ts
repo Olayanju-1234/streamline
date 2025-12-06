@@ -10,7 +10,9 @@ const execAsync = promisify(exec);
 
 // Configuration
 const PORT = process.env.PORT || 3001;
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const CORS_ORIGINS = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:3000', 'https://streamline-client.onrender.com'];
 const DOWNLOAD_PATH = process.env.DOWNLOAD_PATH || process.cwd();
 
 // Initialize Express app
@@ -19,11 +21,11 @@ const httpServer = createServer(app);
 
 // Initialize Socket.io with CORS
 const io = new Server(httpServer, {
-  cors: { origin: CORS_ORIGIN, methods: ['GET', 'POST'] },
+  cors: { origin: CORS_ORIGINS, methods: ['GET', 'POST'], credentials: true },
 });
 
 // Middleware
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
 app.use(express.json());
 
 // Health check
@@ -177,7 +179,8 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   res.status(500).json({ error: 'Server error' });
 });
 
-// Start
-httpServer.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Start server
+httpServer.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`CORS origins: ${CORS_ORIGINS.join(', ')}`);
 });
