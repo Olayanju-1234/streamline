@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply transition-colors duration-300;
+  }
+  
+  body {
+    @apply font-sans antialiased;
+  }
+
+  /* Custom scrollbar for terminal mode */
+  .scrollbar-terminal::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-terminal::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+
+  .scrollbar-terminal::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+
+  .scrollbar-terminal::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+@layer components {
+  /* Chip button styles */
+  .chip {
+    @apply px-4 py-2 border transition-colors text-sm;
+  }
+
+  .chip-inactive {
+    @apply bg-[#050505] text-white border-white/20 hover:border-white/40;
+  }
+
+  .chip-active {
+    @apply bg-[#00FF41] text-[#050505] border-[#00FF41];
+  }
+
+  /* Terminal text styles */
+  .terminal-text {
+    @apply font-mono text-sm;
+  }
+
+  .terminal-accent {
+    @apply text-[#00FF41];
+  }
+}
+
+@layer utilities {
+  /* Animation for loading states */
+  .animate-pulse-fast {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}

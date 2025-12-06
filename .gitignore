@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Downloads (don't commit downloaded videos)
+*.mp4
+*.mp3
+*.webm
+*.mkv
+*.m4a
+*.wav
+*.opus
+
+# Temp
+.cache/
+*.tmp
