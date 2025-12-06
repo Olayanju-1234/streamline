@@ -28,6 +28,11 @@ const io = new Server(httpServer, {
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
 app.use(express.json());
 
+// Root route
+app.get('/', (_req, res) => {
+  res.json({ message: 'Streamline API Server', status: 'running', port: PORT });
+});
+
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -71,7 +76,7 @@ app.get('/api/validate', async (_req, res) => {
   });
 });
 
-// Get common folder paths for download location picker
+// Get common folder paths
 app.get('/api/folders', (_req, res) => {
   const homeDir = os.homedir();
   const folders = [
@@ -92,7 +97,6 @@ io.on('connection', (socket) => {
   let activeDownload: ReturnType<typeof spawn> | null = null;
   let activeInstall: ReturnType<typeof spawn> | null = null;
 
-  // Handle install request
   socket.on('install-dependency', async (data: { dependency: string }) => {
     const { dependency } = data;
     if (!dependency || !['yt-dlp', 'ffmpeg'].includes(dependency)) {
@@ -112,7 +116,6 @@ io.on('connection', (socket) => {
       case 'winget': command = 'winget'; args = ['install', dependency]; break;
       default: socket.emit('install-log', { type: 'error', data: 'No package manager' }); return;
     }
-    console.log(`Installing ${dependency}`);
     socket.emit('install-log', { type: 'info', data: `Installing ${dependency}...` });
     if (activeInstall) { activeInstall.kill(); activeInstall = null; }
     try {
@@ -120,11 +123,7 @@ io.on('connection', (socket) => {
       activeInstall = proc;
       proc.stdout.on('data', (chunk) => {
         chunk.toString().split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
-          let clean = line.trim();
-          if (clean.includes('Downloading')) clean = '📥 ' + clean;
-          else if (clean.includes('Installing') || clean.includes('Pouring')) clean = '📦 ' + clean;
-          else if (clean.includes('✓') || clean.includes('installed')) clean = '✅ ' + clean;
-          socket.emit('install-log', { type: 'stdout', data: clean });
+          socket.emit('install-log', { type: 'stdout', data: line.trim() });
         });
       });
       proc.stderr.on('data', (chunk) => {
@@ -136,38 +135,33 @@ io.on('connection', (socket) => {
         activeInstall = null;
         const check = await checkDependency(dependency);
         if (check.installed) socket.emit('install-log', { type: 'complete', data: `✅ ${dependency} installed!`, version: check.version });
-        else if (code === 0) socket.emit('install-log', { type: 'complete', data: '✅ Done. Restart server if needed.' });
-        else socket.emit('install-log', { type: 'error', data: `Failed. Try: ${command} ${args.join(' ')}` });
+        else if (code === 0) socket.emit('install-log', { type: 'complete', data: '✅ Done.' });
+        else socket.emit('install-log', { type: 'error', data: `Failed.` });
       });
       proc.on('error', (e) => { activeInstall = null; socket.emit('install-log', { type: 'error', data: e.message }); });
     } catch (e) { socket.emit('install-log', { type: 'error', data: String(e) }); }
   });
 
-  // Handle download request
   socket.on('start-download', async (data: { url: string; flags: string[]; downloadPath?: string }) => {
     const { url, flags, downloadPath } = data;
     if (!url) { socket.emit('download-log', { type: 'error', data: 'Invalid URL\n' }); return; }
     if (activeDownload) { activeDownload.kill(); activeDownload = null; }
     const targetPath = downloadPath || DOWNLOAD_PATH;
-    console.log(`Downloading to: ${targetPath}`);
     try {
       const proc = spawn('yt-dlp', [...flags, url], { cwd: targetPath });
       activeDownload = proc;
       proc.stdout.on('data', (d) => socket.emit('download-log', { type: 'stdout', data: d.toString() }));
       proc.stderr.on('data', (d) => socket.emit('download-log', { type: 'stderr', data: d.toString() }));
-      proc.on('close', (code) => { activeDownload = null; socket.emit('download-log', { type: 'complete', data: `Exit code ${code}\n... waiting` }); });
+      proc.on('close', (code) => { activeDownload = null; socket.emit('download-log', { type: 'complete', data: `Exit code ${code}` }); });
       proc.on('error', (e) => { activeDownload = null; socket.emit('download-log', { type: 'error', data: e.message }); });
     } catch (e) { socket.emit('download-log', { type: 'error', data: String(e) }); }
   });
 
-  // Handle cancel
   socket.on('cancel-download', () => {
     if (activeDownload) { activeDownload.kill(); activeDownload = null; socket.emit('download-log', { type: 'complete', data: 'Cancelled' }); }
   });
 
-  // Cleanup
   socket.on('disconnect', () => {
-    console.log(`Client disconnected: ${socket.id}`);
     if (activeDownload) { activeDownload.kill(); activeDownload = null; }
     if (activeInstall) { activeInstall.kill(); activeInstall = null; }
   });
