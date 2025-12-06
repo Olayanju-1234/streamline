@@ -6,7 +6,7 @@ A YouTube downloader with two modes: a clean, minimalist interface for casual us
 
 ## Demo
 
-![Streamline Demo](./demo.gif)
+![Streamline Demo](./demo.png)
 
 | Curator Mode | Terminal Mode |
 |--------------|---------------|
