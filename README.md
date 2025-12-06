@@ -4,6 +4,16 @@ A YouTube downloader with two modes: a clean, minimalist interface for casual us
 
 ![Terminal Mode](https://img.shields.io/badge/Mode-Terminal-00FF41) ![Curator Mode](https://img.shields.io/badge/Mode-Curator-111111)
 
+## Demo
+
+<!-- Add your demo GIF here: ![Demo](./demo.gif) -->
+
+| Curator Mode | Terminal Mode |
+|--------------|---------------|
+| Clean, simple interface for quick downloads | Full command builder with 45+ yt-dlp options |
+| Video or Audio format selection | Quality, subtitles, post-processing controls |
+| One-click download | Live command preview |
+
 ## Features
 
 - **Two UI Modes**
